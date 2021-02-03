@@ -1,0 +1,244 @@
+---
+title: "text minning and setimentanalysis ASSIGNMENT"
+author: "AUGUSTINE UGBEDA"
+date: "2020 M11 4"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+########Scrape the GDP nominal rankings table provided by Statistics Times. http://statisticstimes.com/economy/countries-by-projected-gdp.php
+```{r}
+library(rvest)
+
+```
+
+```{r}
+url <- read_html("http://statisticstimes.com/economy/countries-by-projected-gdp.php")
+#gdp <- html_nodes(url,"table")
+
+#head(gdp)
+
+```
+
+```{r}
+gdp <- url %>%
+        html_nodes("#table_id")%>%
+        html_table(fill = TRUE)
+
+gdp<- as.data.frame(gdp)
+gdp
+```
+or
+```{r}
+gdp <- url %>%
+        html_nodes("table")%>%
+        html_table(fill = TRUE)
+View(gdp[[2]])
+```
+
+```{r}
+str(gdp)
+```
+
+```{r}
+library(writexl)
+
+writexl::write_xlsx(gdp,"C:\\Users\\augustine ugbeda\\Documents\\R\\GDP.xlsx")
+
+```
+###Extract a sizeable amount of useful text from the main body content for the Wikipedia story on the EndSars Protest. Extract a sizeable amount of useful text from the main body content for the Wikipedia story on the EndSars Protest. https://en.wikipedia.org/wiki/End_SARS
+```{r}
+website <- read_html("https://en.wikipedia.org/wiki/End_SARS")
+ endsars <- html_nodes(website,"p")%>%
+    html_text()
+  
+
+  website
+```
+
+
+```{r}
+endsars2 <- website %>%
+        html_nodes("p") %>%
+        html_text()
+
+start<- endsars2[4:82]
+start
+
+
+
+```
+
+
+SENTIMENT ANALYSIS
+
+```{r}
+
+#install.packages("wordcloud") # word-cloud generator 
+#install.packages("RColorBrewer") # color palettes
+#install.packages("syuzhet") # for sentiment analysis
+#install.packages("ggplot2") # for plotting graphs
+#install.packages("sentimentr")
+#installed.packages("tidytext") # provides additional text mining functions
+#installed.packages(textdata)
+
+# Load
+
+library("wordcloud")
+library("RColorBrewer")
+library("syuzhet")
+library("ggplot2")
+library(tidyverse)      # data manipulation & plotting
+library(stringr)        # text cleaning and regular expressions
+
+library(tidytext)
+library(sentimentr)
+library(textdata)
+```
+
+```{r}
+text <- tibble(start)
+text
+
+```
+
+
+
+
+
+
+```{r}
+# get rid of any sneaky trailing spaces
+endsars_text <- trimws(start)
+# remove any dollar signs (they're special characters in R)
+endsars_text <- gsub("\\$", "", endsars_text) 
+endsars_text <- tibble(text = start) %>% unnest_tokens(word, text)
+endsars_text
+```
+
+```{r}
+endsars_text %>%
+        anti_join(stop_words) %>%
+        count(word, sort = TRUE)
+```
+
+```{r}
+endsars_text %>%
+        anti_join(stop_words) %>%
+        count(word, sort = TRUE)
+        
+```
+
+
+
+
+```{r}
+endsars_text %>%
+  inner_join(get_sentiments("bing")) %>% # pull out only sentiment words
+  count(sentiment) %>% # count the # of positive & negative words
+  spread(sentiment, n, fill = 0) %>% # made data wide rather than narrow
+  mutate(sentiment = positive - negative) #
+```
+
+```{r}
+endsars_text %>%
+  inner_join(get_sentiments("nrc")) %>% # pull out only sentiment words
+  count(sentiment) %>% # count the # of positive & negative words
+  spread(sentiment, n, fill = 0) %>% # made data wide rather than narrow
+  mutate(sentiment = positive - negative) #
+```
+
+
+```{r}
+library(wordcloud)
+
+endsars_text %>%
+  anti_join(stop_words) %>%
+  count(word) %>%
+  with(wordcloud(word, n, max.words = 80))
+
+```
+
+```{r}
+
+ 
+bing_endsars <- endsars_text %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  ungroup()
+bing_endsars
+       
+
+```
+  
+```{r}
+ 
+bing_endsars %>%
+        group_by(sentiment) %>%
+        top_n(10) %>%
+        ggplot(aes(reorder(word, n), n, fill = sentiment)) +
+          geom_bar(alpha = 0.8, stat = "identity", show.legend = FALSE) +
+          facet_wrap(~sentiment, scales = "free_y") +
+          labs(y = "Contribution to sentiment", x = NULL) +
+          coord_flip()
+```
+
+```{r}
+endsars_text %>%
+        right_join(get_sentiments("nrc")) %>%
+        filter(!is.na(sentiment)) %>%
+        count(sentiment, sort = TRUE)
+
+
+nrc_endsars <- endsars_text %>%
+  inner_join(get_sentiments("nrc")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  ungroup()
+bing_endsars
+
+
+
+
+```
+
+```{r}
+nrc_endsars %>%
+        group_by(sentiment) %>%
+        top_n(10) %>%
+        ggplot(aes(reorder(word, n), n, fill = sentiment)) +
+          geom_bar(alpha = 0.8, stat = "identity", show.legend = FALSE) +
+          facet_wrap(~sentiment, scales = "free_y") +
+          labs(y = "Contribution to sentiment", x = NULL) +
+          coord_flip()
+```
+
+```{r}
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+`
+
+```
+
